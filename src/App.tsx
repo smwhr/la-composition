@@ -1,22 +1,35 @@
 import './App.css'
 
-interface User {
+interface Named {
   first_name: string
   last_name: string
   age: number
+}
+
+interface WithAddress {
+  address: string
   city: string
   country: string
-  is_admin: boolean
-  is_doctor: boolean
-  specialty: string
-  privileges: string[]
+}
+
+
+interface WithHealth{
   health: number
+}
+
+type User = Named & WithAddress & WithHealth;
+
+interface Doctor{
+  is_doctor: true
+  specialty: string
+  privileges: ["can_heal"]
 }
 
 
 const createUser = (first_name: string, 
                     last_name: string, 
                     age: number, 
+                    address: string,
                     city: string, 
                     country: string
                     ): User => {
@@ -25,16 +38,14 @@ const createUser = (first_name: string,
     first_name,
     last_name,
     age,
+    address,
     city,
     country,
-    is_doctor: false,
-    specialty: '',
-    privileges: [],
     health: 100
   }
 }
 
-const healUser = (user: User): User => {
+function healUser<T extends WithHealth>(user: T): T {
   return {
     ...user,
     health: 100
@@ -42,21 +53,27 @@ const healUser = (user: User): User => {
 }
 
 
+const isDoctor = (user: unknown): user is Doctor => {
+  return (user as Doctor).is_doctor === true;
+}
+
 
 function App() {
   
-  const julien = createUser('Julien', 'Zamor', 38, 'Paris', 'France');
-  julien.specialty = 'Admin';
-  julien.privileges = ['change_location'];
+  const julien = createUser('Julien', 'Zamor', 38, 'avenue Gambetta', 'Paris', 'France');
   
 
 
-  const caroline = createUser('Caroline', 'Zamor', 35, 'Plougoumelen', 'France');
-  caroline.is_doctor = true;
-  caroline.specialty = 'Generalist';
-  caroline.privileges = ['heal'];
+  const caroline: User & Doctor = {
+    ... createUser('Caroline', 'Zamor', 35, 'chemin de Bochocho','Plougoumelen', 'France'),
+    ... {
+      is_doctor: true,
+      specialty: 'Knee Problems',
+      privileges: ["can_heal"],
+    }
+  }
 
-  const sophie = createUser('Sophie', 'Zamor', 66, 'Millau', 'France');
+  const sophie = createUser('Sophie', 'Zamor', 66, 'La Blaquière', 'Millau', 'France');
   sophie.health = 75; // Sophie hurt herself while hiking
 
   /*
@@ -65,6 +82,13 @@ function App() {
   Write the code :
   */
 
+  if (isDoctor(caroline)){
+    console.log('Caroline is a doctor');
+    if (caroline.privileges.includes('can_heal')){
+      console.log('Caroline can heal');
+      healUser(sophie);
+    }
+  }
   
   healUser(sophie);
 
@@ -87,7 +111,7 @@ function tests(){
 
   console.log('Tests are running...')
   console.log('Test healing')
-  let myUser = createUser('Julien', 'Zamor', 38, 'Paris', 'France');
+  let myUser: WithHealth = {health: 50};
   myUser.health = 50;
   console.log('Health before healing: ', myUser.health);
   myUser = healUser(myUser);
