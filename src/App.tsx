@@ -1,6 +1,6 @@
 import './App.css'
 
-interface Named {
+interface EtatCivil {
   first_name: string
   last_name: string
   age: number
@@ -17,12 +17,11 @@ interface WithHealth{
   health: number
 }
 
-type User = Named & WithAddress & WithHealth;
+type User = EtatCivil & WithAddress & WithHealth;
 
 interface Doctor{
   is_doctor: true
   specialty: string
-  privileges: ["can_heal"]
 }
 
 
@@ -45,12 +44,21 @@ const createUser = (first_name: string,
   }
 }
 
-function healUser<T extends WithHealth>(user: T): T {
+function healUser(user: WithHealth): WithHealth {
   return {
     ...user,
     health: 100
   }
 }
+
+// function changeAdress<T extends WithAddress>(user: T, address: string, city: string, country: string): T {
+//   return {
+//     ...user,
+//     address,
+//     city,
+//     country
+//   }
+// }
 
 
 const isDoctor = (user: unknown): user is Doctor => {
@@ -69,11 +77,10 @@ function App() {
     ... {
       is_doctor: true,
       specialty: 'Knee Problems',
-      privileges: ["can_heal"],
     }
   }
 
-  const sophie = createUser('Sophie', 'Zamor', 66, 'La Blaquière', 'Millau', 'France');
+  let sophie = createUser('Sophie', 'Zamor', 66, 'La Blaquière', 'Millau', 'France');
   sophie.health = 75; // Sophie hurt herself while hiking
 
   /*
@@ -84,13 +91,10 @@ function App() {
 
   if (isDoctor(caroline)){
     console.log('Caroline is a doctor');
-    if (caroline.privileges.includes('can_heal')){
-      console.log('Caroline can heal');
-      healUser(sophie);
-    }
+    sophie = healUser(sophie);
   }
   
-  healUser(sophie);
+  console.log(`${sophie.first_name}`, ' a ', sophie.health);
 
 
   return (
